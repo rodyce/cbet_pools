@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script type="module">
+      import { ethers } from "./ethers-5.0.esm.min.js";
+      import {
+        CBET_DEFIN_POOL_ABI,
+        DEFIN_TOKEN_ABI,
+        DEFIN_CLAIM_FAUCET_ABI,
+      } from "./abi.js";
+
+      window.ethereum.enable().then((accounts) => {
+        // A Web3Provider wraps a standard Web3 provider, which is
+        // what Metamask injects as window.ethereum into each page
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+        // The Metamask plugin also allows signing transactions to
+        // send ether and pay to change state within the blockchain.
+        // For this, you need the account signer...
+        const signer = provider.getSigner();
+
+        // DEFIN Token address
+        const definTokenAddress = "0x62b833BC12D3b535756EA64941bF51eB822A95BB";
+        // DEFIN token contract
+        const definTokenContract = new ethers.Contract(
+          definTokenAddress,
+          DEFIN_TOKEN_ABI,
+          provider
+        );
+
+        // Test DEFIN claim faucet.
+        const definClaimFaucetAddress =
+          "0x494a44c87E6055FFC99D18f3B9F8a1F9DFd61188";
+        // DEFIN claim faucet test contract.
+        const definClaimFaucetContract = new ethers.Contract(
+          definClaimFaucetAddress,
+          DEFIN_CLAIM_FAUCET_ABI,
+          provider
+        );
+        // Signer faucet claim contract instance.
+        const definClaimFaucetSignerContract = definClaimFaucetContract.connect(
+          signer
+        );
+
+        // Cbet to Defin contract deployed in Ropsten
+        const cbetToDefinPoolAddress =
+          "0x2321e7994fb615729a8f809efe84371ab479bd84";
+        // Contract instance.
+        const cbetToDefinContract = new ethers.Contract(
+          cbetToDefinPoolAddress,
+          CBET_DEFIN_POOL_ABI,
+          provider
+        );
+        // Signer contract instance.
+        const cbetToDefinSignerContract = cbetToDefinContract.connect(signer);
+
+        async function getBlockNumber() {
+          provider.getBlockNumber();
+        }
+        async function getAddrBalance(address) {
+          return await provider.getBalance("ethers.eth");
+        }
+
+        window.getBlockNumber = getBlockNumber;
+        window.getAddrBalance = getAddrBalance;
+        window.definTokenContract = definTokenContract;
+        window.definClaimFaucetContract = definClaimFaucetContract;
+        window.definClaimFaucetSignerContract = definClaimFaucetSignerContract;
+        window.cbetToDefinContract = cbetToDefinContract;
+        window.cbetToDefinSignerContract = cbetToDefinSignerContract;
+      });
+    </script>
+
+    <script type="text/javascript">
+      function showTotalSupply() {
+        cbetToDefinContract
+          .totalSupply()
+          .then((totalSupply) => {
+            alert(totalSupply);
+          })
+          .catch((err) => {
+            console.err(err);
+          });
+      }
+      async function stake(amount) {
+        try {
+          const tx = await cbetToDefinSignerContract.stake(amount, {
+            gasLimit: 3_000_000,
+          });
+          const result = await tx.wait();
+          console.log(result);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function getMySelectedAddress() {
+        const myAddresses = await ethereum.request({
+          method: "eth_accounts",
+        });
+        const mySelectedAddress = myAddresses[0];
+        return mySelectedAddress;
+      }
+      async function showFaucetAvailableBalance() {
+        try {
+          const mySelectedAddress = await getMySelectedAddress();
+          const availableBalance = await definClaimFaucetContract.getAvailableAmount();
+          alert(
+            `${mySelectedAddress}, Claimable Balance: ${availableBalance.toString()}`
+          );
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      async function showDefinBalance() {
+        try {
+          const mySelectedAddress = await getMySelectedAddress();
+          const balance = await definTokenContract.balanceOf(mySelectedAddress);
+          alert(`${mySelectedAddress}, DEFIN Balance: ${balance.toString()}`);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      async function claimFromFaucet() {
+        try {
+          const tx = await definClaimFaucetSignerContract.claim();
+          const result = await tx.wait();
+          console.log(result);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div>DEFIN DEFIN POOL</div>
+    <button onclick="showTotalSupply()">Show Total Supply</button>
+    <button onclick="stake(0)">Stake Coins</button>
+    <br />
+    <br />
+    <div>FAUCET CLAIM</div>
+    <button onclick="showFaucetAvailableBalance()">
+      Show Claimable Balance
+    </button>
+    <button onclick="showDefinBalance()">Show DEFIN Balance</button>
+    <button onclick="claimFromFaucet()">Claim</button>
+    <br />
+  </body>
+</html>

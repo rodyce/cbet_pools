@@ -1,0 +1,35 @@
+{
+  "name": "CBET Pools",
+  "version": "1.0.0",
+  "description": "Claim CBET",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodyce/cbet-eth-pair_to_cbet_pool.git"
+  },
+  "keywords": [
+    "cbet",
+    "pool"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rodyce/cbet-eth-pair_to_cbet_pool/issues"
+  },
+  "homepage": "https://github.com/rodyce/cbet-eth-pair_to_cbet_pool#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^2.5.1",
+    "bn.js": "^5.1.3",
+    "ethers": "^5.0.17",
+    "fs": "0.0.1-security"
+  },
+  "devDependencies": {
+    "truffle": "^5.1.46",
+    "truffle-hdwallet-provider": "^1.0.17",
+    "ganache-cli": "^6.10.2",
+    "dotenv": "^8.2.0"
+  }
+}
