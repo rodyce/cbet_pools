@@ -1,5 +1,5 @@
 {
-  "name": "CBET Pools",
+  "name": "cbet_pools",
   "version": "1.0.0",
   "description": "Claim CBET",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rodyce/cbet-eth-pair_to_cbet_pool.git"
+    "url": "git+https://github.com/rodyce/cbet_pools.git"
   },
   "keywords": [
     "cbet",
@@ -17,9 +17,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/rodyce/cbet-eth-pair_to_cbet_pool/issues"
+    "url": "https://github.com/rodyce/cbet_pools.git/issues"
   },
-  "homepage": "https://github.com/rodyce/cbet-eth-pair_to_cbet_pool#readme",
+  "homepage": "https://github.com/rodyce/cbet_pools.git#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^2.5.1",
     "bn.js": "^5.1.3",

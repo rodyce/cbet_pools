@@ -14,16 +14,18 @@ pragma solidity ^0.5.17;
 
 import "./CbetClaimFaucetBase.sol";
 
-contract RopstenDefinClaimFaucet is CbetClaimFaucetBase {
+// ROPSTEN: This contract has been deployed to address 0x88f80796714811eb52431abd51355236a9a334ad.
+contract RopstenCbetClaimFaucet is CbetClaimFaucetBase {
     using Address for address;
     using SafeMath for uint256;
 
     // Claimers with their respective amounts in constructor.
+    // The address for dCBET is specified.
     constructor()
         public
         CbetClaimFaucetBase(
-            0x4025D1F29F7FA22B2508516D18d45D3e29d4C178,
-            14_400 ether
+            0x8B76B453A93389158Ad6569490be11418160C502,
+            105 ether
         )
     {
         rewardClaimInfo

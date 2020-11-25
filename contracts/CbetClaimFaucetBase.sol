@@ -26,10 +26,10 @@ contract CbetClaimFaucetBase {
     // Event generated when someone claims his/her reward.
     event Claimed(address claimer, uint256 amount);
 
-    constructor(address definTokenAddr, uint256 _cap) public {
+    constructor(address tokenAddr, uint256 _cap) public {
         require(_cap > 0, "Cap must be > 0");
 
-        CBET_TOKEN = DummyCBETBase(definTokenAddr);
+        CBET_TOKEN = DummyCBETBase(tokenAddr);
         cap = _cap;
     }
 
