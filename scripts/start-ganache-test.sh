@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Start Ganache with perloaded accounts and balances.
+# Start Ganache with preloaded accounts and balances.
 npx ganache-cli \
     --account="0xfef426581d87ae07a218d570311e2f92489cb422e7da475068d6ed0f4ae82dda,0x4563918244f40000" \
     --account="0x39891bd103362f90e7d611e374e06039c4d1f90611ac75a0dfe86474952c0a3b,0x8ac7230489e80000" \

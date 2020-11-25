@@ -4,42 +4,53 @@ const { Coin } = require("../common/constants");
 const CbetToken = artifacts.require("./DummyCBETBase.sol");
 const TestCbetClaimFaucet = artifacts.require("./TestCbetClaimFaucet.sol");
 
-const TOTAL_FAUCET_CAP = new BN(14_400).mul(Coin);
-const CLAIMER_ACCOUNT_COUNT = 6;
+const TOTAL_FAUCET_CAP = new BN(12_000).mul(Coin);
+// Leave some addresses out of the claim faucet to test accounts not able to
+// claim if not included.
+const CLAIMER_ACCOUNT_COUNT = 4;
+const EXPECTED_ACCOUNT_BALANCE = TOTAL_FAUCET_CAP.div(
+  new BN(CLAIMER_ACCOUNT_COUNT)
+);
 const ZERO = new BN(0);
 
-contract("Cbet claim faucet", function (accounts) {
-  let CbetToken;
+contract("CBET claim faucet", function (accounts) {
+  let cbetToken;
   let rewardClaimFaucet;
 
   beforeEach(async () => {
     // Create Cbet token.
     // TODO: FIXME
-    CbetToken = await CbetToken.new();
+    const cbetOwnerAccount = accounts[0];
+    cbetToken = await CbetToken.new(cbetOwnerAccount);
 
     // Configure claimer info (claimers and their amounts).
-    // Include an additional claimer for testing.
-    const claimerAccounts = accounts.slice(0, CLAIMER_ACCOUNT_COUNT + 1);
+    const claimerAccounts = accounts.slice(0, CLAIMER_ACCOUNT_COUNT);
     const claimerAmounts = Array(CLAIMER_ACCOUNT_COUNT).fill(
       TOTAL_FAUCET_CAP.div(new BN(CLAIMER_ACCOUNT_COUNT))
     );
-    claimerAmounts.push(
-      TOTAL_FAUCET_CAP.div(new BN(2 * CLAIMER_ACCOUNT_COUNT))
-    );
+
+    // Add an additional account that exceeds the cap. This is to validate
+    // that no claim can be done passed the cap.
+    claimerAccounts.push(accounts[CLAIMER_ACCOUNT_COUNT]);
+    claimerAmounts.push(new BN(1_000).mul(Coin));
 
     // Instantiate a reward claim faucet contract with the corresponding
     // claimers and their amounts.
     rewardClaimFaucet = await TestCbetClaimFaucet.new(
-      CbetToken.address,
+      cbetToken.address,
       TOTAL_FAUCET_CAP,
       claimerAccounts,
       claimerAmounts
     );
+
+    // Transfer all CBET tokens to faucet claim contract.
+    const cbetBalance = await cbetToken.balanceOf(cbetOwnerAccount);
+    await cbetToken.transfer(rewardClaimFaucet.address, cbetBalance);
   });
 
   it("Can see available reward", async () => {
     // Test setup.
-    const expectedReward = new BN(2_400).mul(Coin);
+    const expectedReward = EXPECTED_ACCOUNT_BALANCE;
 
     // Method under test.
     const rewardAvailable = await rewardClaimFaucet.getAvailableAmount({
@@ -53,18 +64,19 @@ contract("Cbet claim faucet", function (accounts) {
 
   it("Can claim reward", async () => {
     // Test Setup.
+    const sampleAccount = accounts[0];
     // Expected balance after the operation.
-    const expectedAfterBalance = new BN(2_400).mul(Coin);
+    const expectedAfterBalance = EXPECTED_ACCOUNT_BALANCE;
 
     // Get actual balance.
-    const beforeBalance = await CbetToken.balanceOf(accounts[0]);
+    const beforeBalance = await cbetToken.balanceOf(sampleAccount);
 
     // Method under test.
     // Claim reward.
-    await rewardClaimFaucet.claim({ from: accounts[0] });
+    await rewardClaimFaucet.claim(sampleAccount, { from: sampleAccount });
 
     // Get actual after balance after claiming the reward.
-    const afterBalance = await CbetToken.balanceOf(accounts[0]);
+    const afterBalance = await cbetToken.balanceOf(sampleAccount);
 
     // Expectations.
     // Expect that before and after balances are the expected ones.
@@ -74,20 +86,21 @@ contract("Cbet claim faucet", function (accounts) {
 
   it("No available reward after claim", async () => {
     // Test Setup.
+    const sampleAccount = accounts[0];
     // Expected available reward before the claiming operation.
-    const expectedRewardBefore = new BN(2_400).mul(Coin);
+    const expectedRewardBefore = EXPECTED_ACCOUNT_BALANCE;
 
     // Method under test.
     const rewardBefore = await rewardClaimFaucet.getAvailableAmount({
-      from: accounts[0],
+      from: sampleAccount,
     });
 
     // Claim money.
-    await rewardClaimFaucet.claim({ from: accounts[0] });
+    await rewardClaimFaucet.claim(sampleAccount, { from: sampleAccount });
 
     // Method under test. Available reward after claiming must be zero.
     const rewardAfter = await rewardClaimFaucet.getAvailableAmount({
-      from: accounts[0],
+      from: sampleAccount,
     });
 
     // Expectations.
@@ -104,14 +117,14 @@ contract("Cbet claim faucet", function (accounts) {
     let actualThrow = false;
     try {
       // Method under test.
-      await rewardClaimFaucet.claim({ from: testAccount });
+      await rewardClaimFaucet.claim(testAccount, { from: testAccount });
     } catch {
       // Should throw exception.
       actualThrow = true;
     }
 
     // Get balance after claim operation.
-    const afterBalance = await CbetToken.balanceOf(testAccount);
+    const afterBalance = await cbetToken.balanceOf(testAccount);
 
     // Expectations.
     // Exception thrown when claiming.
@@ -132,7 +145,7 @@ contract("Cbet claim faucet", function (accounts) {
     // Claim until reaching cap.
     for (let i = 0; i < CLAIMER_ACCOUNT_COUNT; i++) {
       const account = accounts[i];
-      await rewardClaimFaucet.claim({ from: account });
+      await rewardClaimFaucet.claim(account, { from: account });
     }
 
     // Method under test.
@@ -144,7 +157,7 @@ contract("Cbet claim faucet", function (accounts) {
     let actualThrow = false;
     try {
       // Method under test.
-      await rewardClaimFaucet.claim({ from: testAccount });
+      await rewardClaimFaucet.claim(account, { from: testAccount });
     } catch {
       // Should throw exception.
       actualThrow = true;

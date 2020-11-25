@@ -13,7 +13,10 @@ contract TestCbetClaimFaucet is CbetClaimFaucetBase {
         address[] memory claimers,
         uint256[] memory amounts
     ) public CbetClaimFaucetBase(tokenAddr, cap) {
-        require(claimers.length == amounts.length, "not same len found");
+        require(
+            claimers.length == amounts.length,
+            "claimers and amounts array not of same length"
+        );
 
         for (uint256 i = 0; i < claimers.length; i++) {
             address claimer = claimers[i];
